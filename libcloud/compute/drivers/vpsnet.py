@@ -195,6 +195,8 @@ class VPSNetNodeDriver(NodeDriver):
     def list_ssd_nodes(self, location=None):
         res = self.connection.request(
             '/ssd_virtual_machines.%s' % (API_VERSION,))
+        if 'errors' in res.object:
+            raise 'Error returning list of nodes: %s' % (res.object['errors'])
         
         return [self._to_ssd_node(i['virtual_machine']) for i in res.object]
     
