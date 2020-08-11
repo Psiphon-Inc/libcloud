@@ -99,7 +99,8 @@ class VPSNetNodeDriver(NodeDriver):
                  state=state,
                  public_ips=[vm.get('primary_ip_address', None)],
                  private_ips=[],
-                 extra={'slices_count': vm['slices_count']},
+                 extra={'slices_count': vm['slices_count'],
+                        'password': vm.get('password', None)},
                  # Number of nodes consumed by VM
                  driver=self.connection.driver)
         return n
@@ -125,7 +126,7 @@ class VPSNetNodeDriver(NodeDriver):
         single_node_price = self._get_size_price(size_id='1')
         return num * single_node_price
 
-    def create_node(self, name, image, size, **kwargs):
+    def create_node(self, name, image_id, cloud_id,size, **kwargs):
         """Create a new VPS.net node
 
         @inherits: :class:`NodeDriver.create_node`
@@ -140,15 +141,20 @@ class VPSNetNodeDriver(NodeDriver):
         request = {'virtual_machine':
                    {'label': name,
                     'fqdn': kwargs.get('ex_fqdn', ''),
-                    'system_template_id': image.id,
+                    'system_template_id': image_id,
+                    'cloud_id': cloud_id,
                     'backups_enabled': kwargs.get('ex_backups_enabled', 0),
-                    'slices_required': size.id}}
+                    'slices_required': size}}
 
         res = self.connection.request('/virtual_machines.%s' % (API_VERSION,),
                                       data=json.dumps(request),
                                       headers=headers,
                                       method='POST')
-        node = self._to_node(res.object['virtual_machine'])
+
+        if 'virtual_machine' in res.object:
+            node = self._to_node(res.object['virtual_machine'])
+        else:
+            node = res
         return node
 
     def reboot_node(self, node):
@@ -200,6 +206,14 @@ class VPSNetNodeDriver(NodeDriver):
         
         return [self._to_ssd_node(i['virtual_machine']) for i in res.object]
     
+    def get_node(self, node_id):
+        res = self.connection.request(
+            '/virtual_machines/%s.%s' % (node_id,
+                                             API_VERSION),
+            method="GET")
+        node = self._to_node(res.object['virtual_machine'])
+        return node
+
     def get_ssd_node(self, node_id):
         res = self.connection.request(
             '/ssd_virtual_machines/%s.%s' % (node_id,
@@ -316,6 +330,21 @@ class VPSNetNodeDriver(NodeDriver):
     def get_available_ssd_clouds(self):
         available_clouds = list()
         clouds = self.get_all_ssd_clouds()
+        for cloud in clouds:
+            if cloud['cloud']['available']:
+                available_clouds.append(cloud)
+        
+        return available_clouds
+
+    def get_all_clouds(self):
+        res = self.connection.request(
+            '/available_clouds.%s' % (API_VERSION),
+            method='GET')
+        return res.parse_body()
+    
+    def get_available_clouds(self):
+        available_clouds = list()
+        clouds = self.get_all_clouds()
         for cloud in clouds:
             if cloud['cloud']['available']:
                 available_clouds.append(cloud)
