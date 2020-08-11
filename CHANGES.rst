@@ -1,8 +1,92 @@
 ﻿Changelog
 =========
 
-Changes with Apache Libcloud in 1.0.0
--------------------------------------
+Changes with Apache Libcloud 1.1.0
+----------------------------------
+
+General
+~~~~~~~
+
+- Add support for automatic SNI (SSL extension) using the hostname
+  supplied to connect to.
+
+  Note: This functionality is only available in Python 2.7.9 and
+  Python >= 3.2.
+  (LIBCLOUD-827, GITHUB-808)
+  [David Freedman]
+
+Compute
+~~~~~~~
+
+- Add support image guest OS features in GCE driver
+  (GITHUB-825)
+  [Max Illfelder]
+
+- Added forceCustimization option for vcloud director driver
+  (GITHUB-824)
+  [Juan Font]
+
+- Add node lookup by UUID for libvirt driver
+  (GITHUB-823)
+  [Frank Wu]
+
+- Add block storage support to DigitalOcean node driver
+  (GITHUB-807)
+  [Adam Wolfe Gordon]
+
+- Add SASL auth support to libvirt driver.
+  (GITHUB-809)
+  [Katana-Steel]
+
+- Allow VIPs in Dimension Data driver to bind to any port.
+  (GITHUB-818)
+  [Mark Maglana]
+
+- Add support for deleting a security group to the Aliyun ECS driver.
+  (GITHUB-816)
+  [Heng Wu]
+
+- Add ``ex_force_customization`` argument to the ``ex_deploy_node`` in vCloud
+  driver.
+  (GITHUB-824)
+  [Juan Font]
+
+- Add support for listing  attributes for a particular security group
+  (``ex_list_security_group_attributes``) to the Aliyun ECS driver.
+  (GITHUB-826)
+  [Heng Wu]
+
+- Add new Mumbai, India region to the EC2 driver.
+  [Tomaz Muraus]
+
+- Add driver for the new AWS cn-north-1 region.
+  (GITHUB-827, LIBCLOUD-820)
+  [Jamie Cressey]
+
+- Fix authentication with temporary IAM role credentials (token) in the EC2
+  driver.
+  (GITHUB-820)
+  [Alejandro González]
+
+Container
+~~~~~~~~~
+
+- Fixed API compatibility for Docker Container driver with API 1.24, set driver
+  to use versioned URL for all communication. Backported changes to 1.21 API
+  (GITHUB-821)
+  [Anthony Shaw]
+
+Load Balancer
+~~~~~~~~~~~~~
+
+- Added additional parameters to the Rackspace driver in `list_balancers` for filtering and
+  searching.
+  (GITHUB-803)
+  [João Paulo Raittes]
+
+
+Changes with Apache Libcloud 1.0.0
+----------------------------------
 
 General
 ~~~~~~~
@@ -114,8 +198,8 @@ DNS
   (GITHUB-787)
   [Oltjano Terpollari]
 
-Changes with Apache Libcloud in 1.0.0-rc2
------------------------------------------
+Changes with Apache Libcloud 1.0.0-rc2
+--------------------------------------
 
 General
 ~~~~~~~

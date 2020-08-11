@@ -85,6 +85,19 @@ class EC2Tests(LibcloudTestCase, TestCaseMixin):
         self.driver = EC2NodeDriver(*EC2_PARAMS,
                                     **{'region': self.region})
 
+    def test_instantiate_driver_with_token(self):
+        token = 'temporary_credentials_token'
+        driver = EC2NodeDriver(*EC2_PARAMS, **{'region': self.region, 'token': token})
+        self.assertTrue(hasattr(driver, 'token'), 'Driver has no attribute token')
+        self.assertEquals(token, driver.token, "Driver token does not match with provided token")
+
+    def test_driver_with_token_signature_version(self):
+        token = 'temporary_credentials_token'
+        driver = EC2NodeDriver(*EC2_PARAMS, **{'region': self.region, 'token': token})
+        kwargs = driver._ex_connection_class_kwargs()
+        self.assertIn('signature_version', kwargs)
+        self.assertEquals('4', kwargs['signature_version'], 'Signature version is not 4 with temporary credentials')
+
     def test_create_node(self):
         image = NodeImage(id='ami-be3adfd7',
                           name=self.image_name,
@@ -393,7 +406,8 @@ class EC2Tests(LibcloudTestCase, TestCaseMixin):
             ('ec2_eu_west', 'eu-west-1'),
             ('ec2_ap_southeast', 'ap-southeast-1'),
             ('ec2_ap_northeast', 'ap-northeast-1'),
-            ('ec2_ap_southeast_2', 'ap-southeast-2')
+            ('ec2_ap_southeast_2', 'ap-southeast-2'),
+            ('ec2_ap_south_1', 'ap-south-1')
         ]
 
         for api_name, region_name in names:
@@ -402,15 +416,17 @@ class EC2Tests(LibcloudTestCase, TestCaseMixin):
             sizes = self.driver.list_sizes()
 
             ids = [s.id for s in sizes]
-            self.assertTrue('t1.micro' in ids)
-            self.assertTrue('m1.small' in ids)
-            self.assertTrue('m1.large' in ids)
-            self.assertTrue('m1.xlarge' in ids)
-            self.assertTrue('c1.medium' in ids)
-            self.assertTrue('c1.xlarge' in ids)
-            self.assertTrue('m2.xlarge' in ids)
-            self.assertTrue('m2.2xlarge' in ids)
-            self.assertTrue('m2.4xlarge' in ids)
+
+            if region_name not in ['ap-south-1']:
+                self.assertTrue('t1.micro' in ids)
+                self.assertTrue('m1.small' in ids)
+                self.assertTrue('m1.large' in ids)
+                self.assertTrue('m1.xlarge' in ids)
+                self.assertTrue('c1.medium' in ids)
+                self.assertTrue('c1.xlarge' in ids)
+                self.assertTrue('m2.xlarge' in ids)
+                self.assertTrue('m2.2xlarge' in ids)
+                self.assertTrue('m2.4xlarge' in ids)
 
             if region_name == 'us-east-1':
                 self.assertEqual(len(sizes), 54)
