@@ -142,6 +142,63 @@ class TestHttpLibSSLTests(unittest.TestCase):
         self.assertEqual(e.errno, 104)
         self.assertTrue(expected_msg in str(e))
 
+        # Test original exception is propagated correctly on non reset by peer
+        # error
+        with self.assertRaises(socket.error) as cm:
+            mock_wrap_socket.side_effect = socket.error(105, 'Some random error')
+            self.httplib_object.connect()
+
+        e = cm.exception
+        self.assertEqual(e.errno, 105)
+        self.assertTrue('Some random error' in str(e))
+
+    def test_certifi_ca_bundle_in_search_path(self):
+        mock_certifi_ca_bundle_path = '/certifi/bundle/path'
+
+        # Certifi not available
+        import libcloud.security
+        reload(libcloud.security)
+
+        original_length = len(libcloud.security.CA_CERTS_PATH)
+
+        self.assertTrue(mock_certifi_ca_bundle_path not in
+                        libcloud.security.CA_CERTS_PATH)
+
+        # Certifi is available
+        mock_certifi = mock.Mock()
+        mock_certifi.where.return_value = mock_certifi_ca_bundle_path
+        sys.modules['certifi'] = mock_certifi
+
+        # Certifi CA bundle path should be injected at the begining of search list
+        import libcloud.security
+        reload(libcloud.security)
+
+        self.assertEqual(libcloud.security.CA_CERTS_PATH[0],
+                         mock_certifi_ca_bundle_path)
+        self.assertEqual(len(libcloud.security.CA_CERTS_PATH),
+                         (original_length + 1))
+
+        # Certifi is available, but USE_CERTIFI is set to False
+        os.environ['LIBCLOUD_SSL_USE_CERTIFI'] = 'false'
+
+        import libcloud.security
+        reload(libcloud.security)
+
+        self.assertTrue(mock_certifi_ca_bundle_path not in
+                        libcloud.security.CA_CERTS_PATH)
+        self.assertEqual(len(libcloud.security.CA_CERTS_PATH), original_length)
+
+        # And enabled
+        os.environ['LIBCLOUD_SSL_USE_CERTIFI'] = 'true'
+
+        import libcloud.security
+        reload(libcloud.security)
+
+        self.assertEqual(libcloud.security.CA_CERTS_PATH[0],
+                         mock_certifi_ca_bundle_path)
+        self.assertEqual(len(libcloud.security.CA_CERTS_PATH),
+                         (original_length + 1))
+
 
 if __name__ == '__main__':
     sys.exit(unittest.main())

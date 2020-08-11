@@ -9,10 +9,12 @@ certificate files.
 ``CA_CERTS_PATH`` contains common paths to CA bundle installations on the
 following platforms:
 
+* ``certifi`` package on PyPi
 * ``openssl`` package on CentOS / Fedora
 * ``ca-certificates`` package on Debian / Ubuntu / Arch / Gentoo
 * ``ca_root_nss`` port on FreeBSD
 * ``curl-ca-bundle`` port on Mac OS X
+* ``openssl`` and ``curl-ca-bundle`` homebrew package
 
 If no valid CA certificate files are found, you will see an error message
 similar to the one below:
